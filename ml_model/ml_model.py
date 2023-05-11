@@ -65,6 +65,9 @@ def main():
     batch_size = 128
     epochs = 150
 
+    # load model
+    keypoint_model = tf.keras.models.load_model("model/MARS.h5")
+
     # instantiate the model
     keypoint_model = define_CNN(featuremap_train[0].shape, 57)
 

@@ -16,4 +16,4 @@ set(OSLIB_SRCS )
 
 # sources and includes for the app
 include_directories(inc)
-target_sources(app PRIVATE src/main.c ${OSLIB_SRCS})
+target_sources(app PRIVATE src/main.c src/vga_driver.c ${OSLIB_SRCS})

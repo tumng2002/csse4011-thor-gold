@@ -209,6 +209,7 @@ def readAndParseData18xx(Dataport, configParameters):
                 y = np.zeros(numDetectedObj,dtype=np.float32)
                 z = np.zeros(numDetectedObj,dtype=np.float32)
                 velocity = np.zeros(numDetectedObj,dtype=np.float32)
+                intensity = np.zeros(numDetectedObj,dtype=np.float32)
                 
                 for objectNum in range(numDetectedObj):
                     
@@ -221,9 +222,11 @@ def readAndParseData18xx(Dataport, configParameters):
                     idX += 4
                     velocity[objectNum] = byteBuffer[idX:idX + 4].view(dtype=np.float32)
                     idX += 4
+                    intensity[objectNum] = byteBuffer[idX:idX + 4].view(dtype=np.float32)
+                    idX += 4
                 
                 # Store the data in the detObj dictionary
-                detObj = {"numObj": numDetectedObj, "x": x, "y": y, "z": z, "velocity":velocity}
+                detObj = {"numObj": numDetectedObj, "x": x, "y": y, "z": z, "velocity":velocity, "intensity":intensity}
                 dataOK = 1
                 
  

@@ -13,8 +13,6 @@ from keras.layers.normalization import BatchNormalization
 from keras.layers import Dropout
 
 
-
-
 def define_CNN(in_shape, n_keypoints):
 
 
@@ -67,6 +65,8 @@ def main():
 
     # load model
     keypoint_model = tf.keras.models.load_model("model/MARS.h5")
+    keypoint_model.predict(labels_test[0])
+    exit()
 
     # instantiate the model
     keypoint_model = define_CNN(featuremap_train[0].shape, 57)

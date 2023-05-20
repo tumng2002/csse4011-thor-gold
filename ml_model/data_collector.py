@@ -9,6 +9,7 @@ from mpl_toolkits.mplot3d import axes3d as p3d
 import serial
 import time
 import numpy as np
+import tensorflow as tf
 
 # Change the configuration file name
 # configFileName = 'AWR1843config.cfg'
@@ -18,6 +19,8 @@ CLIport = {}
 Dataport = {}
 byteBuffer = np.zeros(2**15,dtype = 'uint8')
 byteBufferLength = 0
+
+
 
 
 # ------------------------------------------------------------------
@@ -101,6 +104,7 @@ def parseConfigFile(configFileName):
     return configParameters
    
 # ------------------------------------------------------------------
+configParameters = parseConfigFile(configFileName)
 
 # Funtion to read and parse the incoming data
 def readAndParseData18xx(Dataport, configParameters):
@@ -235,7 +239,6 @@ def readAndParseData18xx(Dataport, configParameters):
                 detObj = {"numObj": numDetectedObj, "x": x, "y": y, "z": z, "velocity":velocity, "intensity":intensity}
                 dataOK = 1
                 
- 
         # Remove already processed data
         if idX > 0 and byteBufferLength>idX:
             shiftSize = totalPacketLen
@@ -255,11 +258,9 @@ def readAndParseData18xx(Dataport, configParameters):
 
 # Funtion to update the data and display in the plot
 def update():
-     
     dataOk = 0
     # x = []
     # y = []
-      
     # Read and parse the received data
     dataOk, frameNumber, detObj = readAndParseData18xx(Dataport, configParameters)
     
@@ -272,56 +273,46 @@ def update():
     return dataOk, detObj
 
 
-# -------------------------    MAIN   -----------------------------------------  
 
-# Configurate the serial port
-CLIport, Dataport = serialConfig(configFileName)
-
-# Get the configuration parameters from the configuration file
-configParameters = parseConfigFile(configFileName)
-   
-# Main loop 
-detObj = {}  
-frameData = {}    
-currentIndex = 0
-while True:
-    try:
-        # Update the data and check if the data is okay
-        dataOk = update()
-        # print(dataOk)
-        
-        if dataOk:
-            # Store the current frame into frameData
-            frameData[currentIndex] = detObj
-            currentIndex += 1
-        
-        time.sleep(0.05) # Sampling frequency of 30 Hz
-        
-    # Stop the program and close everything if Ctrl + c is pressed
-    except KeyboardInterrupt:
-        CLIport.write(('sensorStop\n').encode())
-        CLIport.close()
-        Dataport.close()
-        win.close()
-        break
-        
 data_queue = queue.Queue()
 
 #temp bone list, basically all the points that are joined up together. 
 bone_list =  [[1, 3], [2, 3], [3, 4], [4, 7], [5, 7], [6, 7], [1, 8], [2, 9], [8, 10], [9, 11], [10, 12], [11, 13], [5, 14], [6, 15], [14, 16], [15, 17], [16, 18], [17, 19], [3, 20]]
 
 
-def get_base_data():
+def get_radar_data():
 
-    # ser = serial.Serial(port="/dev/ttyACM0") # depending on the device used. 
+# -------------------------    MAIN   -----------------------------------------  
+
+    # Configurate the serial port
+    CLIport, Dataport = serialConfig(configFileName)
+
+    # Get the configuration parameters from the configuration file
+
+    
+    # Main loop 
+    detObj = {}  
+    frameData = {}    
+    currentIndex = 0
     while True:
-        # line = ser.readline().decode('utf-8') # assuming still passing through JSON format
-        # inc_sensor = re.findall('\{(.+?)\}', line)
-        # if not inc_sensor:
-        #     continue
-        # for a in inc_sensor:
-        #     data = json.loads("{" + a + "}") 
-            data_queue.put(data)
+        try:
+            # Update the data and check if the data is okay
+            dataOk = update()
+            # print(dataOk)
+            
+            if dataOk:
+                # Store the current frame into frameData
+                data_queue.put(detObj)
+            
+            time.sleep(0.05) # Sampling frequency of 30 Hz
+            
+        # Stop the program and close everything if Ctrl + c is pressed
+        except KeyboardInterrupt:
+            CLIport.write(('sensorStop\n').encode())
+            CLIport.close()
+            Dataport.close()
+            break
+        
 
 
 def update_skeleton(joints, bones, x, y, z):
@@ -333,7 +324,7 @@ def update_skeleton(joints, bones, x, y, z):
 
 def main():
 
-    data_thread = threading.Thread(target=get_base_data, daemon=True)
+    data_thread = threading.Thread(target=get_radar_data, daemon=True)
     data_thread.start()
 
     # initial starting point of the model:
@@ -351,19 +342,29 @@ def main():
     joints = ax.scatter([],[],[], marker='o', color="green")
     bones = ax.plt([],[],[], linestyle="-", color="green")
     plt.ion()
-    
+
+    skeleton_model = tf.keras.models.load_model("model/MARS.h5")
+    test_data_map = []
+    to_esp = serial.Serial('/dev/ttyUSB0')
+
     while True:
-        data = to_database_queue.get()
+        data = data_queue.get()
+        # don't know what these actually are yet
+        test_data_map.append(data['x'], data['y'], data['z'], data['doppler'], data['intensity'])
 
-        # COLLECT AND RUN THROUGH MODEL:
+        if (len(test_data_map) == 64): # may need to increase the sampling rate, since we have our KPI as less than one second refresh
+            # COLLECT AND RUN THROUGH MODEL:
+            joint_prediction = skeleton_model.predict("FEATURE_MAP_OF_TEST_DATA")
+            
+            # GET DATA INTO X,Y,Z,
+            x = [] 
+            y = []
+            z = []
+            update_skeleton(joints, bones, x, y, z)
+            plt.pause(0.01)
 
-        # GET DATA INTO X,Y,Z,
-        x = [] 
-        y = []
-        z = []
-        update_skeleton(joints, bones, x, y, z)
-        plt.pause(0.1)
-
+            for point in joint_prediction:
+                to_esp.write(point)
         
 
 

@@ -516,7 +516,6 @@ static void MX_TIM2_Init(void)
   }
   sConfigOC.OCMode = TIM_OCMODE_INACTIVE;
   sConfigOC.Pulse = VSYNCBackPorchPulse;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
   if (HAL_TIM_OC_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();

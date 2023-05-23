@@ -33,6 +33,16 @@ void vga_vsync_irq(void);
 void vga_hsync_irq(void);
 
 /**
+ * Call inside the DMA1 Channel 3 IRQ to handle the interrupt
+ */
+void vga_dma_ch3_irq(void);
+
+/**
+ * Call inside the DMA1 Channel 4 IRQ to handle the interrupt
+ */
+void vga_dma_ch4_irq(void);
+
+/**
  * Clears the VGA screen
  */
 void vga_clear_screen(void);

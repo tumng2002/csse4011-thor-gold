@@ -27,8 +27,8 @@ void vga_init(void) {
     HAL_TIM_Base_Start_IT(&htim2);
     HAL_TIM_Base_Start_IT(&htim3);
 
-    HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, &(red_fb[0][0]), HSIZE+2, DAC_ALIGN_8B_R);
-    HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_2, &(green_fb[0][0]), HSIZE+2, DAC_ALIGN_8B_R);
+    HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, &(red_fb[0][0]), VTOTAL, DAC_ALIGN_8B_R);
+    HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_2, &(green_fb[0][0]), VTOTAL, DAC_ALIGN_8B_R);
 }
 
 /**
@@ -44,9 +44,61 @@ void vga_vsync_irq(void) {
  */
 void vga_hsync_irq(void) {
     if (vflag) {
-		DMA1_Channel3->CCR = 0x93;
+		//DMA1_Channel3->CCR = 0x93;
 	}
 	// TIM1->SR = 0xFFFB; //~TIM_IT_CC2;
+}
+
+/**
+ * Call inside the DMA1 Channel 3 IRQ to handle the interrupt
+ */
+void vga_dma_ch3_irq(void) {
+	// DMA1->IFCR = DMA1_IT_TC3;
+	// DMA1_Channel3->CCR = 0x92;
+	// DMA1_Channel3->CNDTR = VTOTAL;
+	
+	// vdraw++;
+	
+	// if (vdraw == 3)
+	// {
+	// 	vdraw = 0;
+
+	// 	vline++;
+		
+	// 	if (vline == VID_VSIZE)
+	// 	{
+	// 		vdraw = vline = vflag = 0;
+	// 		DMA1_Channel3->CMAR = (u32) &fb[0][0];
+	// 	} else {
+	// 		DMA1_Channel3->CMAR += VTOTAL;
+	// 	}
+	// }
+}
+
+/**
+ * Call inside the DMA1 Channel 4 IRQ to handle the interrupt
+ */
+void vga_dma_ch4_irq(void) {
+	// DMA1->IFCR = DMA1_IT_TC3;
+	// DMA1_Channel3->CCR = 0x92;
+	// DMA1_Channel3->CNDTR = VTOTAL;
+	
+	// vdraw++;
+	
+	// if (vdraw == 3)
+	// {
+	// 	vdraw = 0;
+
+	// 	vline++;
+		
+	// 	if (vline == VID_VSIZE)
+	// 	{
+	// 		vdraw = vline = vflag = 0;
+	// 		DMA1_Channel3->CMAR = (u32) &fb[0][0];
+	// 	} else {
+	// 		DMA1_Channel3->CMAR += VTOTAL;
+	// 	}
+	// }
 }
 
 /**

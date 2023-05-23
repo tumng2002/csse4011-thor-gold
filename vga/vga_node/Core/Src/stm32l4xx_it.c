@@ -192,7 +192,7 @@ void SysTick_Handler(void)
 void DMA1_Channel3_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel3_IRQn 0 */
-
+  vga_dma_ch3_irq();
   /* USER CODE END DMA1_Channel3_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_dac_ch1);
   /* USER CODE BEGIN DMA1_Channel3_IRQn 1 */
@@ -206,7 +206,7 @@ void DMA1_Channel3_IRQHandler(void)
 void DMA1_Channel4_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel4_IRQn 0 */
-
+  vga_dma_ch4_irq();
   /* USER CODE END DMA1_Channel4_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_dac_ch2);
   /* USER CODE BEGIN DMA1_Channel4_IRQn 1 */

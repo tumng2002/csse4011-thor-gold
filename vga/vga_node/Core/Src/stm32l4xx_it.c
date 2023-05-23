@@ -22,6 +22,7 @@
 #include "stm32l4xx_it.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "vga.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -236,8 +237,7 @@ void EXTI9_5_IRQHandler(void)
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
-  // vflag = 1;
-	// TIM2->SR = 0xFFF7; //~TIM_IT_CC3;
+  vga_vsync_irq();
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
   /* USER CODE BEGIN TIM2_IRQn 1 */
@@ -251,11 +251,7 @@ void TIM2_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM3_IRQn 0 */
-  // if (vflag)
-	// {
-	// 	DMA1_Channel3->CCR = 0x93;
-	// }
-	// TIM1->SR = 0xFFFB; //~TIM_IT_CC2;
+  vga_hsync_irq();
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */

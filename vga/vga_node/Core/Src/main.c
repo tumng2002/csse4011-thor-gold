@@ -825,7 +825,9 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+    // toggle the led every second
+    HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+    osDelay(1000);
   }
   /* USER CODE END 5 */
 }

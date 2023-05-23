@@ -92,10 +92,12 @@ void Error_Handler(void);
 #define ARD_D0_GPIO_Port GPIOA
 #define VSYNC_BACK_PORCH_Pin GPIO_PIN_2
 #define VSYNC_BACK_PORCH_GPIO_Port GPIOA
-#define ARD_D4_Pin GPIO_PIN_3
-#define ARD_D4_GPIO_Port GPIOA
-#define ARD_D13_Pin GPIO_PIN_5
-#define ARD_D13_GPIO_Port GPIOA
+#define VGA_BLUE_Pin GPIO_PIN_3
+#define VGA_BLUE_GPIO_Port GPIOA
+#define VGA_GREEN_Pin GPIO_PIN_4
+#define VGA_GREEN_GPIO_Port GPIOA
+#define VGA_RED_Pin GPIO_PIN_5
+#define VGA_RED_GPIO_Port GPIOA
 #define ARD_D12_Pin GPIO_PIN_6
 #define ARD_D12_GPIO_Port GPIOA
 #define ARD_D11_Pin GPIO_PIN_7

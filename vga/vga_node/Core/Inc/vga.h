@@ -4,14 +4,16 @@
 /**
  * VGA Pinout
  * 
+ * TIM2
  * PA2  (D10)   -> VSYNC-BACK-PORCH
  * PA15 (D9)    -> VSYNC
  * 
+ * TIM3
  * PB1  (D6)    -> HSYNC-BACK-PORCH
  * PB4  (D5)    -> HSYNC
  * 
- * PXXX (DX)    -> RED
- * PXXX (DX)    -> GREEN
+ * PA5  (D13)   -> RED
+ * PA4  (D7)    -> GREEN
  * PXXX (DX)    -> BLUE
  */
 

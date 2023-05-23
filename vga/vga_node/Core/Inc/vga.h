@@ -35,6 +35,6 @@ void vga_hsync_irq(void);
 /**
  * Clears the VGA screen
  */
-vga_clear_screen(void);
+void vga_clear_screen(void);
 
 #endif // __VGA_H

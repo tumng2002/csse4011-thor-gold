@@ -20,6 +20,8 @@
 #include "main.h"
 #include "cmsis_os.h"
 
+#include "vga.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 

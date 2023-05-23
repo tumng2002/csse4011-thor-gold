@@ -12,9 +12,9 @@
  * PB1  (D6)    -> HSYNC-BACK-PORCH
  * PB4  (D5)    -> HSYNC
  * 
- * PA5  (D13)   -> RED      (DAC OUT1)
- * PA4  (D7)    -> GREEN    (DAC OUT2)
- * PXXX (DX)    -> BLUE
+ * PA5  (D13)   -> RED      (DAC1 OUT1)
+ * PA4  (D7)    -> GREEN    (DAC1 OUT2)
+ * PA3  (D4)    -> BLUE     (GPIO)
  */
 
 /**

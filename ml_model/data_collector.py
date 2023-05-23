@@ -10,6 +10,7 @@ import serial
 import time
 import numpy as np
 import tensorflow as tf
+import pandas as pd
 
 # Change the configuration file name
 # configFileName = 'AWR1843config.cfg'
@@ -276,8 +277,45 @@ def update():
 
 data_queue = queue.Queue()
 
-#temp bone list, basically all the points that are joined up together. 
-bone_list =  [[1, 3], [2, 3], [3, 4], [4, 7], [5, 7], [6, 7], [1, 8], [2, 9], [8, 10], [9, 11], [10, 12], [11, 13], [5, 14], [6, 15], [14, 16], [15, 17], [16, 18], [17, 19], [3, 20]]
+df_columns = ['x', 'y', 'z', 'velocity', 'intensity']
+SPINE_BASE = 0
+SPINE_MID = 1
+NECK = 2
+HEAD = 3
+SHOULDER_LEFT = 4
+ELBOW_LEFT = 5
+WRIST_LEFT = 6
+SHOULDER_RIGHT = 7
+ELBOW_RIGHT = 8
+WRIST_RIGHT = 9
+HIP_LEFT = 10
+KNEE_LEFT = 11
+ANKLE_LEFT = 12
+FOOT_LEFT = 13
+HIP_RIGHT = 14
+KNEE_RIGHT = 15
+ANKLE_RIGHT = 16
+FOOT_RIGHT = 17
+SPINE_SHOULDER = 18
+
+bone_list = [[SPINE_BASE, SPINE_MID], 
+             [SPINE_MID, SPINE_SHOULDER], 
+             [SPINE_SHOULDER, NECK], 
+             [NECK, HEAD], 
+             [SPINE_SHOULDER, SHOULDER_RIGHT], 
+             [SHOULDER_RIGHT, ELBOW_RIGHT], 
+             [ELBOW_RIGHT, WRIST_RIGHT], 
+             [SPINE_SHOULDER, SHOULDER_LEFT], 
+             [SHOULDER_LEFT, ELBOW_LEFT], 
+             [ELBOW_LEFT, WRIST_LEFT], 
+             [SPINE_BASE, HIP_RIGHT], 
+             [HIP_RIGHT, KNEE_RIGHT], 
+             [KNEE_RIGHT, ANKLE_RIGHT],
+             [ANKLE_RIGHT, FOOT_RIGHT], 
+             [SPINE_BASE, HIP_LEFT], 
+             [HIP_LEFT, KNEE_LEFT], 
+             [KNEE_LEFT, ANKLE_LEFT], 
+             [ANKLE_LEFT, FOOT_LEFT]]
 
 
 def get_radar_data():
@@ -297,7 +335,7 @@ def get_radar_data():
     while True:
         try:
             # Update the data and check if the data is okay
-            dataOk = update()
+            dataOk, frameNumber, detObj = update()
             # print(dataOk)
             
             if dataOk:
@@ -349,23 +387,29 @@ def main():
 
     while True:
         data = data_queue.get()
-        # don't know what these actually are yet
-        test_data_map.append(data['x'], data['y'], data['z'], data['doppler'], data['intensity'])
+
+        test_data_map.append([data[df_columns[0]], data[df_columns[1]], data[df_columns[2]], data[df_columns[3]], data[df_columns[4]]])
 
         if (len(test_data_map) == 64): # may need to increase the sampling rate, since we have our KPI as less than one second refresh
-            # COLLECT AND RUN THROUGH MODEL:
-            joint_prediction = skeleton_model.predict("FEATURE_MAP_OF_TEST_DATA")
             
-            # GET DATA INTO X,Y,Z,
-            x = [] 
-            y = []
-            z = []
-            update_skeleton(joints, bones, x, y, z)
-            plt.pause(0.01)
+            df = pd.DataFrame(test_data_map)
+            df.columns = df_columns
+            sorted_df = df.sort_values(by=[df_columns[0], df_columns[1], df_columns[2]])
+            feature_map = np.array(sorted_df).reshape(8, 8, 5)
+            joint_prediction = skeleton_model.predict(feature_map)
+            
+            # # GET DATA INTO X,Y,Z,
+            # x = [] 
+            # y = []
+            # z = []
+            # update_skeleton(joints, bones, x, y, z)
+            # plt.pause(0.01)
 
             for point in joint_prediction:
+                # how do we want to send this?
                 to_esp.write(point)
-        
+            
+            test_data_map.clear()
 
 
 

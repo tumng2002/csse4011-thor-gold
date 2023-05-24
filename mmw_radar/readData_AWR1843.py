@@ -117,6 +117,7 @@ def readAndParseData18xx(Dataport, configParameters):
     magicOK = 0 # Checks if magic number has been read
     dataOK = 0 # Checks if the data has been read correctly
     frameNumber = 0
+    
     detObj = {}
     
     readBuffer = Dataport.read(Dataport.in_waiting)
@@ -271,7 +272,9 @@ def readAndParseData18xx(Dataport, configParameters):
             
             # Check that there are no errors with the buffer length
             if byteBufferLength < 0:
-                byteBufferLength = 0         
+                byteBufferLength = 0    
+    # else:
+    #     numDetectedObj = 0     
 
     return dataOK, frameNumber, detObj, numDetectedObj
 
@@ -332,7 +335,7 @@ while True:
             point_cloud = point_cloud.drop(point_cloud[point_cloud.z > 1].index)
             # drop values based on 0 < y < 3
             point_cloud = point_cloud.drop(point_cloud[point_cloud.y < 0].index)
-            point_cloud = point_cloud.drop(point_cloud[point_cloud.y > 3].index)
+            point_cloud = point_cloud.drop(point_cloud[point_cloud.y > 2].index)
             point_cloud = point_cloud.reset_index()
             point_cloud = point_cloud.drop(["index", "snr", "noise"], axis=1)
             # cut data to first 64 points, and zero pad if under

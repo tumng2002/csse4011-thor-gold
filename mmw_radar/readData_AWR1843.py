@@ -28,12 +28,12 @@ def serialConfig(configFileName):
     # Open the serial ports for the configuration and the data ports
     
     # Raspberry pi
-    #CLIport = serial.Serial('/dev/ttyACM0', 115200)
-    #Dataport = serial.Serial('/dev/ttyACM1', 921600)
+    CLIport = serial.Serial('/dev/ttyACM0', 115200)
+    Dataport = serial.Serial('/dev/ttyACM1', 921600)
     
-    # Windows
-    CLIport = serial.Serial('COM12', 115200)
-    Dataport = serial.Serial('COM11', 921600)
+    # # Windows
+    # CLIport = serial.Serial('COM12', 115200)
+    # Dataport = serial.Serial('COM11', 921600)
 
     # Read the configuration file and send it to the board
     config = [line.rstrip('\r\n') for line in open(configFileName)]
@@ -273,8 +273,8 @@ def readAndParseData18xx(Dataport, configParameters):
             # Check that there are no errors with the buffer length
             if byteBufferLength < 0:
                 byteBufferLength = 0    
-    # else:
-    #     numDetectedObj = 0     
+    else:
+        numDetectedObj = 0     
 
     return dataOK, frameNumber, detObj, numDetectedObj
 
@@ -304,11 +304,14 @@ keypoint_model = tf.keras.models.load_model("../ml_model/model/MARS.h5")
 # Main loop
 frameData = {}    
 currentIndex = 0
+numDetectedObj = 0
 
 fig = plt.figure()
 
 ax = fig.add_subplot(projection='3d')
 plot = True
+
+frames = []
 
 while True:
     try:
@@ -323,43 +326,54 @@ while True:
             x_raw = detObj["x"]
             y_raw = detObj["y"]
             z_raw = detObj["z"]
+
             point_cloud = pd.DataFrame(detObj)
             point_cloud["intensity"] = point_cloud["snr"] / 10
-            # sort by x, then y for equal x, then z for equal x and y
-            point_cloud = point_cloud.sort_values(by=["x", "y", "z"])
-            # drop values based on -1 < x < 1
-            point_cloud = point_cloud.drop(point_cloud[point_cloud.x < -1].index)
-            point_cloud = point_cloud.drop(point_cloud[point_cloud.x > 1].index)
-            # drop values based on -1 < z < 1
-            point_cloud = point_cloud.drop(point_cloud[point_cloud.z < -1].index)
-            point_cloud = point_cloud.drop(point_cloud[point_cloud.z > 1].index)
-            # drop values based on 0 < y < 3
-            point_cloud = point_cloud.drop(point_cloud[point_cloud.y < 0].index)
-            point_cloud = point_cloud.drop(point_cloud[point_cloud.y > 2].index)
-            point_cloud = point_cloud.reset_index()
-            point_cloud = point_cloud.drop(["index", "snr", "noise"], axis=1)
-            # cut data to first 64 points, and zero pad if under
-            df_final = point_cloud.reindex(range(64), fill_value=0)
-            # convert dataframe to 64x5 column vector
-            column_vector = df_final.values
-            # convert column vector to square 8x8x5 matrix in row-major order
-            square_matrix = np.array([column_vector.reshape(8, 8, 5)])
-            skeleton = keypoint_model.predict(square_matrix)
-            x = skeleton[0][0:19]
-            y = skeleton[0][19:38]
-            z = skeleton[0][38:57]
+            frames.append(point_cloud)
+            
+            if len(frames) == 2:
 
-            if plot:
-                ax.clear()
-                ax.scatter(x, y, z)
-                ax.scatter(x_raw, y_raw, z_raw)
-                ax.set_xlabel('X Label')
-                ax.set_ylabel('Y Label')
-                ax.set_zlabel('Z Label')
-                ax.axes.set_xlim3d(left=-1, right=1) 
-                ax.axes.set_ylim3d(bottom=0, top=3) 
-                ax.axes.set_zlim3d(bottom=-1, top=1) 
-                plt.pause(0.05)
+                final_point = pd.concat(frames)
+                # sort by x, then y for equal x, then z for equal x and y
+                final_point = final_point.sort_values(by=["x", "y", "z"])
+                # drop values based on -1 < x < 1
+                final_point = final_point.drop(final_point[final_point.x < -1].index)
+                final_point = final_point.drop(final_point[final_point.x > 1].index)
+                # drop values based on -1 < z < 1
+                final_point = final_point.drop(final_point[final_point.z < -1].index)
+                final_point = final_point.drop(final_point[final_point.z > 1].index)
+                # drop values based on 0 < y < 3
+                final_point = final_point.drop(final_point[final_point.y < 0].index)
+                final_point = final_point.drop(final_point[final_point.y > 2].index)
+                
+                final_point = final_point.drop(["snr", "noise"], axis=1)
+                final_point = final_point.reset_index()
+                final_point = final_point.drop(["index"], axis=1)
+                
+                # cut data to first 64 points, and zero pad if under
+                df_final = final_point.reindex(range(64), fill_value=0)
+                # convert dataframe to 64x5 column vector
+                column_vector = df_final.values
+                # convert column vector to square 8x8x5 matrix in row-major order
+                square_matrix = np.array([column_vector.reshape(8, 8, 5)])
+                skeleton = keypoint_model.predict(square_matrix)
+                x = skeleton[0][0:19]
+                y = skeleton[0][19:38]
+                z = skeleton[0][38:57]
+
+                if plot:
+                    ax.clear()
+                    ax.scatter(x, y, z)
+                    ax.scatter(x_raw, y_raw, z_raw)
+                    ax.set_xlabel('X Label')
+                    ax.set_ylabel('Y Label')
+                    ax.set_zlabel('Z Label')
+                    ax.axes.set_xlim3d(left=-1, right=1) 
+                    ax.axes.set_ylim3d(bottom=0, top=3) 
+                    ax.axes.set_zlim3d(bottom=-1, top=1) 
+                    plt.pause(0.05)
+                
+                frames.clear()
         # Update the data and check if the data is okay
         # dataOk = update()
         # # print(dataOk)

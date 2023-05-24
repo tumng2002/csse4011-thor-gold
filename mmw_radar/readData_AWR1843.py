@@ -330,9 +330,9 @@ while True:
             # drop values based on -1 < z < 1
             point_cloud = point_cloud.drop(point_cloud[point_cloud.z < -1].index)
             point_cloud = point_cloud.drop(point_cloud[point_cloud.z > 1].index)
-            # drop values based on 0 < y < 2
+            # drop values based on 0 < y < 3
             point_cloud = point_cloud.drop(point_cloud[point_cloud.y < 0].index)
-            point_cloud = point_cloud.drop(point_cloud[point_cloud.y > 2].index)
+            point_cloud = point_cloud.drop(point_cloud[point_cloud.y > 3].index)
             point_cloud = point_cloud.reset_index()
             point_cloud = point_cloud.drop(["index", "snr", "noise"], axis=1)
             # cut data to first 64 points, and zero pad if under

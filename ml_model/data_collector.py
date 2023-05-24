@@ -2,7 +2,7 @@ import time
 import threading
 import serial
 import queue
-import re
+import struct
 import json
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d as p3d
@@ -382,34 +382,46 @@ def main():
     plt.ion()
 
     skeleton_model = tf.keras.models.load_model("model/MARS.h5")
-    test_data_map = []
     to_esp = serial.Serial('/dev/ttyUSB0')
 
     while True:
         data = data_queue.get()
 
-        test_data_map.append([data[df_columns[0]], data[df_columns[1]], data[df_columns[2]], data[df_columns[3]], data[df_columns[4]]])
+        point_cloud = pd.DataFrame(data)
+        point_cloud["intensity"] = point_cloud["snr"] / 10
+        # sort by x, then y for equal x, then z for equal x and y
+        point_cloud = point_cloud.sort_values(by=["x", "y", "z"])
+        # drop values based on -1 < x < 1
+        point_cloud = point_cloud.drop(point_cloud[point_cloud.x < -1].index)
+        point_cloud = point_cloud.drop(point_cloud[point_cloud.x > 1].index)
+        # drop values based on -1 < z < 1
+        point_cloud = point_cloud.drop(point_cloud[point_cloud.z < -1].index)
+        point_cloud = point_cloud.drop(point_cloud[point_cloud.z > 1].index)
+        # drop values based on 0 < y < 3
+        point_cloud = point_cloud.drop(point_cloud[point_cloud.y < 0].index)
+        point_cloud = point_cloud.drop(point_cloud[point_cloud.y > 3].index)
+        point_cloud = point_cloud.reset_index()
+        point_cloud = point_cloud.drop(["index", "snr", "noise"], axis=1)
+        # cut data to first 64 points, and zero pad if under
+        df_final = point_cloud.reindex(range(64), fill_value=0)
+        # convert dataframe to 64x5 column vector
+        column_vector = df_final.values
+        # convert column vector to square 8x8x5 matrix in row-major order
+        square_matrix = np.array([column_vector.reshape(8, 8, 5)])
+        skeleton = skeleton_model.predict(square_matrix)
+        x = skeleton[0][0:19]
+        y = skeleton[0][19:38]
+        z = skeleton[0][38:57]
+    
+        for index in range(19):
+            # how do we want to send this?
+            x = bytearray(struct.pack("f", skeleton[0][index]))
+            y = bytearray(struct.pack("f", skeleton[0][19 + index]))
+            z = bytearray(struct.pack("f", skeleton[0][38 + index]))
 
-        if (len(test_data_map) == 64): # may need to increase the sampling rate, since we have our KPI as less than one second refresh
+            packet = x + y + z
             
-            df = pd.DataFrame(test_data_map)
-            df.columns = df_columns
-            sorted_df = df.sort_values(by=[df_columns[0], df_columns[1], df_columns[2]])
-            feature_map = np.array(sorted_df).reshape(8, 8, 5)
-            joint_prediction = skeleton_model.predict(feature_map)
-            
-            # # GET DATA INTO X,Y,Z,
-            # x = [] 
-            # y = []
-            # z = []
-            # update_skeleton(joints, bones, x, y, z)
-            # plt.pause(0.01)
-
-            for point in joint_prediction:
-                # how do we want to send this?
-                to_esp.write(point)
-            
-            test_data_map.clear()
+            to_esp.write(packet)
 
 
 

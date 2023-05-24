@@ -6,7 +6,7 @@
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 
-extern DAC_HandleTypeDef hdac1;
+// extern DAC_HandleTypeDef hdac1;
 
 #define VSIZE   200     /* Vertical resolution (in lines) */
 #define HSIZE   50      /* Horizontal resolution (in bytes) */
@@ -27,8 +27,8 @@ void vga_init(void) {
     HAL_TIM_Base_Start_IT(&htim2);
     HAL_TIM_Base_Start_IT(&htim3);
 
-    HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, &(red_fb[0][0]), VTOTAL, DAC_ALIGN_8B_R);
-    HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_2, &(green_fb[0][0]), VTOTAL, DAC_ALIGN_8B_R);
+    // HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, &(red_fb[0][0]), VTOTAL, DAC_ALIGN_8B_R);
+    // HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_2, &(green_fb[0][0]), VTOTAL, DAC_ALIGN_8B_R);
 }
 
 /**

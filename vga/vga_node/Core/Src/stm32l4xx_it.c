@@ -192,11 +192,11 @@ void SysTick_Handler(void)
 void DMA1_Channel3_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel3_IRQn 0 */
-  vga_dma_ch3_irq();
+  
   /* USER CODE END DMA1_Channel3_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_dac_ch1);
   /* USER CODE BEGIN DMA1_Channel3_IRQn 1 */
-
+  vga_dma_ch3_irq();
   /* USER CODE END DMA1_Channel3_IRQn 1 */
 }
 
@@ -206,11 +206,11 @@ void DMA1_Channel3_IRQHandler(void)
 void DMA1_Channel4_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel4_IRQn 0 */
-  vga_dma_ch4_irq();
+  
   /* USER CODE END DMA1_Channel4_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_dac_ch2);
   /* USER CODE BEGIN DMA1_Channel4_IRQn 1 */
-
+  vga_dma_ch4_irq();
   /* USER CODE END DMA1_Channel4_IRQn 1 */
 }
 
@@ -237,11 +237,11 @@ void EXTI9_5_IRQHandler(void)
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
-  vga_vsync_irq();
+  
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
   /* USER CODE BEGIN TIM2_IRQn 1 */
-
+  vga_vsync_irq();
   /* USER CODE END TIM2_IRQn 1 */
 }
 
@@ -251,11 +251,11 @@ void TIM2_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM3_IRQn 0 */
-  vga_hsync_irq();
+  
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
-
+  vga_hsync_irq();
   /* USER CODE END TIM3_IRQn 1 */
 }
 

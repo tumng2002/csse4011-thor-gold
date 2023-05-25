@@ -1,57 +1,46 @@
-import time
 import threading
 import serial
+import struct
 import queue
-import re
-import json
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d as p3d
-import serial
-import time
 import numpy as np
-import tensorflow as tf
 
 
 data_queue = queue.Queue()
 
-SPINE_BASE = 0
-SPINE_MID = 1
-NECK = 2
-HEAD = 3
-SHOULDER_LEFT = 4
-ELBOW_LEFT = 5
-WRIST_LEFT = 6
-SHOULDER_RIGHT = 7
-ELBOW_RIGHT = 8
-WRIST_RIGHT = 9
-HIP_LEFT = 10
-KNEE_LEFT = 11
-ANKLE_LEFT = 12
-FOOT_LEFT = 13
-HIP_RIGHT = 14
-KNEE_RIGHT = 15
-ANKLE_RIGHT = 16
-FOOT_RIGHT = 17
-SPINE_SHOULDER = 18
+NOSE = 0
+LEFT_SHOULDER = 11
+RIGHT_SHOULDER = 12
+LEFT_ELBOW = 13
+RIGHT_ELBOW = 14
+LEFT_WRIST = 15
+RIGHT_WRIST = 16
+LEFT_HIP = 23
+RIGHT_HIP = 24
+LEFT_KNEE = 25
+RIGHT_KNEE = 26
+LEFT_ANKLE = 27
+RIGHT_ANKLE = 28
+LEFT_HEEL = 29
+RIGHT_HEEL = 30
 
-bone_list = [[SPINE_BASE, SPINE_MID], 
-             [SPINE_MID, SPINE_SHOULDER], 
-             [SPINE_SHOULDER, NECK], 
-             [NECK, HEAD], 
-             [SPINE_SHOULDER, SHOULDER_RIGHT], 
-             [SHOULDER_RIGHT, ELBOW_RIGHT], 
-             [ELBOW_RIGHT, WRIST_RIGHT], 
-             [SPINE_SHOULDER, SHOULDER_LEFT], 
-             [SHOULDER_LEFT, ELBOW_LEFT], 
-             [ELBOW_LEFT, WRIST_LEFT], 
-             [SPINE_BASE, HIP_RIGHT], 
-             [HIP_RIGHT, KNEE_RIGHT], 
-             [KNEE_RIGHT, ANKLE_RIGHT],
-             [ANKLE_RIGHT, FOOT_RIGHT], 
-             [SPINE_BASE, HIP_LEFT], 
-             [HIP_LEFT, KNEE_LEFT], 
-             [KNEE_LEFT, ANKLE_LEFT], 
-             [ANKLE_LEFT, FOOT_LEFT]]
+bone_list = [[NOSE, LEFT_SHOULDER], 
+             [NOSE, RIGHT_SHOULDER], 
+             [RIGHT_SHOULDER, LEFT_SHOULDER], 
+             [RIGHT_SHOULDER, RIGHT_ELBOW], 
+             [RIGHT_ELBOW, RIGHT_WRIST], 
+             [LEFT_SHOULDER, LEFT_ELBOW], 
+             [LEFT_ELBOW, LEFT_WRIST], 
+             [RIGHT_SHOULDER, RIGHT_HIP], 
+             [LEFT_SHOULDER, LEFT_HIP], 
+             [LEFT_HIP, RIGHT_HIP], 
+             [RIGHT_HIP, RIGHT_KNEE], 
+             [RIGHT_KNEE, RIGHT_ANKLE], 
+             [RIGHT_ANKLE, RIGHT_HEEL],
+             [LEFT_HIP, LEFT_KNEE], 
+             [LEFT_KNEE, LEFT_ANKLE], 
+             [LEFT_ANKLE, LEFT_HEEL]]
 
 def update_skeleton(joints, bones, x, y, z):
     joints._offsets3 = (x, y, z)
@@ -62,15 +51,10 @@ def update_skeleton(joints, bones, x, y, z):
 
 
 def get_uart_in():
-    ser = serial.Serial('/dev/ttyUSB0')
-    data = []
+    ser = serial.Serial('/dev/ttyUSB0', 115200)
     while True:
         line = ser.readline()
-        # parse the line
-        data.append(line)
-        if len(data) == 19:
-            data_queue.put(list(data))
-            data.clear()
+        data_queue.put(line)
 
 def main():
     data_thread = threading.Thread(target=get_uart_in, daemon=True)
@@ -93,9 +77,18 @@ def main():
 
     while True:
         data = data_queue.get()
-        # convert data to x, y, z
-        x = [] 
-        y = []
-        z = []
+
+        # Define the number of floats in each part of the packet
+        num_floats = len(data) // struct.calcsize('f')
+
+        # Convert the packet to a list of floats
+        floats = struct.unpack('f' * num_floats, data)
+
+        # Split the list of floats into separate arrays for x, y, and z
+        x = floats[:15]
+        # y = floats[num_floats // 3: 2 * (num_floats // 3)]
+        y = np.zeros(15)
+        z = floats[15:]
+
         update_skeleton(joints, bones, x, y, z)
         plt.pause(0.01)

@@ -64,11 +64,12 @@ def main():
     fig = plt.figure()
     ax = p3d.Axes3D(fig)
 
-    ax.set_xlim(-2, 2)
     ax.set_xlabel('X')
-    ax.set_ylim(0, 4)
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
+    ax.axes.set_xlim3d(left=-0, right=1) 
+    ax.axes.set_ylim3d(bottom=-1, top=1) 
+    ax.axes.set_zlim3d(bottom=1, top=0) 
     ax.set_title("mmWave Skeleton Model")
 
     joints = ax.scatter([],[],[], marker='o', color="green")

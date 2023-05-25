@@ -6,6 +6,8 @@ import tensorflow as tf
 from sklearn import metrics
 import pandas as pd
 
+from ports import *
+
 # Change the configuration file name
 # configFileName = 'AWR1843config.cfg'
 # configFileName = "tuned-radar.cfg"
@@ -28,8 +30,8 @@ def serialConfig(configFileName):
     # Open the serial ports for the configuration and the data ports
     
     # Raspberry pi
-    CLIport = serial.Serial('/dev/ttyACM0', 115200)
-    Dataport = serial.Serial('/dev/ttyACM1', 921600)
+    CLIport = serial.Serial(cli_usb, 115200)
+    Dataport = serial.Serial(data_usb, 921600)
     
     # # Windows
     # CLIport = serial.Serial('COM12', 115200)
@@ -323,9 +325,9 @@ while True:
             # Store the current frame into frameData
             frameData[currentIndex] = detObj
             currentIndex += 1
-            x_raw = detObj["x"]
-            y_raw = detObj["y"]
-            z_raw = detObj["z"]
+            # x_raw = detObj["x"]
+            # y_raw = detObj["y"]
+            # z_raw = detObj["z"]
 
             point_cloud = pd.DataFrame(detObj)
             point_cloud["intensity"] = point_cloud["snr"] / 10
@@ -336,12 +338,14 @@ while True:
                 final_point = pd.concat(frames)
                 # sort by x, then y for equal x, then z for equal x and y
                 final_point = final_point.sort_values(by=["x", "y", "z"])
-                # drop values based on -1 < x < 1
-                final_point = final_point.drop(final_point[final_point.x < -1].index)
-                final_point = final_point.drop(final_point[final_point.x > 1].index)
-                # drop values based on -1 < z < 1
-                final_point = final_point.drop(final_point[final_point.z < -1].index)
-                final_point = final_point.drop(final_point[final_point.z > 1].index)
+                X_LIM = 0.75
+                Z_LIM = 0.75
+                # drop values based on -X_LIM < x < X_LIM
+                final_point = final_point.drop(final_point[final_point.x < -X_LIM].index)
+                final_point = final_point.drop(final_point[final_point.x > X_LIM].index)
+                # drop values based on -Z_LIM < z < Z_LIM
+                final_point = final_point.drop(final_point[final_point.z < -Z_LIM].index)
+                final_point = final_point.drop(final_point[final_point.z > Z_LIM].index)
                 # drop values based on 0 < y < 3
                 final_point = final_point.drop(final_point[final_point.y < 0].index)
                 final_point = final_point.drop(final_point[final_point.y > 2].index)
@@ -360,6 +364,10 @@ while True:
                 x = skeleton[0][0:19]
                 y = skeleton[0][19:38]
                 z = skeleton[0][38:57]
+
+                x_raw = df_final["x"]
+                y_raw = df_final["y"]
+                z_raw = df_final["z"]
 
                 if plot:
                     ax.clear()

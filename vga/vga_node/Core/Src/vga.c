@@ -4,7 +4,6 @@
 #include "vga.h"
 
 extern TIM_HandleTypeDef htim16;
-extern UART_HandleTypeDef huart1;
 
 uint8_t fb[BUFFER_VSIZE][BUFFER_HSIZE];	/* Frame buffer for pixels */
 

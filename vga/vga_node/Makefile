@@ -37,6 +37,7 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Core/Src/vga.c \
+Core/Src/radar.c \
 Core/Src/main.c \
 Core/Src/freertos.c \
 Core/Src/stm32l4xx_it.c \

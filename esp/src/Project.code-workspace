@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"name": "Skeleton_Tracking",
+			"path": ".."
+		},
+		{
+			"name": "csse4011-thor-gold",
+			"path": "../../csse4011-thor-gold"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"esp_idf_version.h": "c",
+			"protocol_examples_common.h": "c",
+			"esp_log.h": "c"
+		}
+	}
+}

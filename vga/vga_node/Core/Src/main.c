@@ -157,7 +157,7 @@ int main(void)
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  radar_task_init();
+  // radar_task_init();
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -615,7 +615,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : VGA_HSYNC_Pin VGA_BLUE_Pin */
   GPIO_InitStruct.Pin = VGA_HSYNC_Pin|VGA_BLUE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -630,7 +630,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : VGA_VSYNC_Pin VGA_GREEN_Pin VGA_RED_Pin */
   GPIO_InitStruct.Pin = VGA_VSYNC_Pin|VGA_GREEN_Pin|VGA_RED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 

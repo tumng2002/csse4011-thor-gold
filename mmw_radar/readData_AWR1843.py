@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from sklearn import metrics
 import pandas as pd
+import pickle
+import argparse
 
 from ports import *
 
@@ -13,8 +15,6 @@ from ports import *
 # configFileName = "tuned-radar.cfg"
 configFileName = "profile_3d.cfg"
 
-CLIport = {}
-Dataport = {}
 byteBuffer = np.zeros(2**15,dtype = 'uint8')
 byteBufferLength = 0
 
@@ -25,8 +25,6 @@ byteBufferLength = 0
 # the configuration file to the radar
 def serialConfig(configFileName):
     
-    global CLIport
-    global Dataport
     # Open the serial ports for the configuration and the data ports
     
     # Raspberry pi
@@ -211,7 +209,7 @@ def readAndParseData18xx(Dataport, configParameters):
             idX += 4
             tlv_length = np.matmul(byteBuffer[idX:idX+4],word)
             idX += 4
-            print(tlv_type)
+            # print(tlv_type)
             
 
             # Read the data depending on the TLV message
@@ -283,7 +281,7 @@ def readAndParseData18xx(Dataport, configParameters):
 # ------------------------------------------------------------------
 
 # Funtion to update the data and display in the plot
-def update():
+def update(Dataport, configParameters):
      
     dataOk = 0
       
@@ -295,114 +293,138 @@ def update():
 
 # -------------------------    MAIN   -----------------------------------------  
 
-# Configurate the serial port
-CLIport, Dataport = serialConfig(configFileName)
+USE_MODEL = False
+PLOT_DATA = True
+COLLECT_DATA = True
 
-# Get the configuration parameters from the configuration file
-configParameters = parseConfigFile(configFileName)
+def main():
 
-keypoint_model = tf.keras.models.load_model("../ml_model/model/MARS.h5")
-   
-# Main loop
-frameData = {}    
-currentIndex = 0
-numDetectedObj = 0
+    if COLLECT_DATA:
+        parser = argparse.ArgumentParser(description='Filename for saving radar data')
+        parser.add_argument('-f,--file',
+                            dest='file',
+                            type=str,
+                            required=True,
+                            metavar='name of file',
+                            help='Name of bin file in raw-data dir')
+        args = parser.parse_args()
 
-fig = plt.figure()
+        # Open a file
+        filename = args.file
 
-ax = fig.add_subplot(projection='3d')
-plot = True
+    # Configurate the serial port
+    CLIport, Dataport = serialConfig(configFileName)
 
-frames = []
+    # Get the configuration parameters from the configuration file
+    configParameters = parseConfigFile(configFileName)
 
-while True:
-    try:
-        # Update the data and check if the data is okay
-        dataOk, detObj, numDetectedObj = update()
-        # print(dataOk)
-
-        if dataOk:
-            # Store the current frame into frameData
-            frameData[currentIndex] = detObj
-            currentIndex += 1
-            # x_raw = detObj["x"]
-            # y_raw = detObj["y"]
-            # z_raw = detObj["z"]
-
-            point_cloud = pd.DataFrame(detObj)
-            point_cloud["intensity"] = point_cloud["snr"] / 10
-            frames.append(point_cloud)
-            
-            if len(frames) == 2:
-
-                final_point = pd.concat(frames)
-                # sort by x, then y for equal x, then z for equal x and y
-                final_point = final_point.sort_values(by=["x", "y", "z"])
-                X_LIM = 0.75
-                Z_LIM = 0.75
-                # drop values based on -X_LIM < x < X_LIM
-                final_point = final_point.drop(final_point[final_point.x < -X_LIM].index)
-                final_point = final_point.drop(final_point[final_point.x > X_LIM].index)
-                # drop values based on -Z_LIM < z < Z_LIM
-                final_point = final_point.drop(final_point[final_point.z < -Z_LIM].index)
-                final_point = final_point.drop(final_point[final_point.z > Z_LIM].index)
-                # drop values based on 0 < y < 3
-                final_point = final_point.drop(final_point[final_point.y < 0].index)
-                final_point = final_point.drop(final_point[final_point.y > 2].index)
-                
-                final_point = final_point.drop(["snr", "noise"], axis=1)
-                final_point = final_point.reset_index()
-                final_point = final_point.drop(["index"], axis=1)
-                
-                # cut data to first 64 points, and zero pad if under
-                df_final = final_point.reindex(range(64), fill_value=0)
-                # convert dataframe to 64x5 column vector
-                column_vector = df_final.values
-                # convert column vector to square 8x8x5 matrix in row-major order
-                square_matrix = np.array([column_vector.reshape(8, 8, 5)])
-                skeleton = keypoint_model.predict(square_matrix)
-                x = skeleton[0][0:19]
-                y = skeleton[0][19:38]
-                z = skeleton[0][38:57]
-
-                x_raw = df_final["x"]
-                y_raw = df_final["y"]
-                z_raw = df_final["z"]
-
-                if plot:
-                    ax.clear()
-                    ax.scatter(x, y, z)
-                    ax.scatter(x_raw, y_raw, z_raw)
-                    ax.set_xlabel('X Label')
-                    ax.set_ylabel('Y Label')
-                    ax.set_zlabel('Z Label')
-                    ax.axes.set_xlim3d(left=-1, right=1) 
-                    ax.axes.set_ylim3d(bottom=0, top=3) 
-                    ax.axes.set_zlim3d(bottom=-1, top=1) 
-                    plt.pause(0.05)
-                
-                frames.clear()
-        # Update the data and check if the data is okay
-        # dataOk = update()
-        # # print(dataOk)
-        
-        # if dataOk:
-        #     # Store the current frame into frameData
-        #     frameData[currentIndex] = detObj
-        #     currentIndex += 1
-        
-        # time.sleep(0.05) # Sampling frequency of 30 Hz
-        
-    # Stop the program and close everything if Ctrl + c is pressed
-    except KeyboardInterrupt:
-        CLIport.write(('sensorStop\n').encode())
-        CLIport.close()
-        Dataport.close()
-        break
-        
+    if USE_MODEL:
+        keypoint_model = tf.keras.models.load_model("../ml_model/model/MARS.h5")
     
+    # Main loop
+    frameData = {}    
+    currentIndex = 0
+    numDetectedObj = 0
+    num_frames = 0
+
+    fig = plt.figure()
+
+    ax = fig.add_subplot(projection='3d')
+
+    frames = []
+    cached_frames = []
+
+    while True:
+        try:
+            # Update the data and check if the data is okay
+            dataOk, detObj, numDetectedObj = update(Dataport, configParameters)
+            # print(dataOk)
+
+            if dataOk:
+                # Store the current frame into frameData
+                frameData[currentIndex] = detObj
+                currentIndex += 1
+                # x_raw = detObj["x"]
+                # y_raw = detObj["y"]
+                # z_raw = detObj["z"]
+
+                point_cloud = pd.DataFrame(detObj)
+                point_cloud["intensity"] = point_cloud["snr"] / 10
+                frames.append(point_cloud)
+                
+                if len(frames) == 2:
+
+                    final_point = pd.concat(frames)
+                    # sort by x, then y for equal x, then z for equal x and y
+                    final_point = final_point.sort_values(by=["x", "y", "z"])
+                    X_LIM = 1
+                    Z_LIM = 1.5
+                    Y_MIN = 1
+                    Y_LIM = 3
+                    # drop values based on -X_LIM < x < X_LIM
+                    final_point = final_point.drop(final_point[final_point.x < -X_LIM].index)
+                    final_point = final_point.drop(final_point[final_point.x > X_LIM].index)
+                    # drop values based on -Z_LIM < z < Z_LIM
+                    final_point = final_point.drop(final_point[final_point.z < -Z_LIM].index)
+                    final_point = final_point.drop(final_point[final_point.z > Z_LIM].index)
+                    # drop values based on 0 < y < 3
+                    final_point = final_point.drop(final_point[final_point.y < Y_MIN].index)
+                    final_point = final_point.drop(final_point[final_point.y > Y_LIM].index)
+                    
+                    final_point = final_point.drop(["snr", "noise"], axis=1)
+                    final_point = final_point.reset_index()
+                    final_point = final_point.drop(["index"], axis=1)
+                    
+                    # cut data to first 64 points, and zero pad if under
+                    df_final = final_point.reindex(range(64), fill_value=0)
+                    # convert dataframe to 64x5 column vector
+                    column_vector = df_final.values
+                    # convert column vector to square 8x8x5 matrix in row-major order
+                    square_matrix = np.array([column_vector.reshape(8, 8, 5)])
+
+                    # SAVE TO FILE HERE
+                    if USE_MODEL:
+                        skeleton = keypoint_model.predict(square_matrix)
+                        x = skeleton[0][0:19]
+                        y = skeleton[0][19:38]
+                        z = skeleton[0][38:57]
+
+                    x_raw = df_final["x"]
+                    y_raw = df_final["y"]
+                    z_raw = df_final["z"]
+
+                    if PLOT_DATA:
+                        ax.clear()
+                        if USE_MODEL:
+                            ax.scatter(x, y, z)
+                        ax.scatter(x_raw, y_raw, z_raw)
+                        ax.set_xlabel('X Label')
+                        ax.set_ylabel('Y Label')
+                        ax.set_zlabel('Z Label')
+                        ax.axes.set_xlim3d(left=-X_LIM, right=X_LIM) 
+                        ax.axes.set_ylim3d(bottom=0, top=3) 
+                        ax.axes.set_zlim3d(bottom=-Z_LIM, top=Z_LIM) 
+                        plt.pause(0.05)
+                    
+                    frames.clear()
+
+                    if COLLECT_DATA:
+                        cached_frames.append(column_vector.reshape(8, 8, 5))
+                        if len(cached_frames) % 10 == 0:
+                            print(len(cached_frames))
+                        if len(cached_frames) == 500:
+                            training_data = np.array(cached_frames)
+                            with open(f"radar_data/{filename}.bin", "wb") as f:
+                                pickle.dump(training_data, f)
+                                break
+
+        except KeyboardInterrupt:
+            break
+
+    CLIport.write(('sensorStop\n').encode())
+    CLIport.close()
+    Dataport.close()
 
 
-
-
-
+if __name__ == "__main__":
+    main()

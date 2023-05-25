@@ -49,8 +49,6 @@ extern "C" {
 
 /* USER CODE END EM */
 
-void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -59,10 +57,7 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define HSYNCPulse 144
-#define HSYNCBackPorchPulse 352
-#define VSYNCPulse 2
-#define VSYNCBackPorchPulse 24
+#define PixelClockPeriodTicks 3
 #define M24SR64_Y_RF_DISABLE_Pin GPIO_PIN_2
 #define M24SR64_Y_RF_DISABLE_GPIO_Port GPIOE
 #define USB_OTG_FS_OVRCR_EXTI3_Pin GPIO_PIN_3
@@ -90,10 +85,8 @@ void Error_Handler(void);
 #define ARD_D1_GPIO_Port GPIOA
 #define ARD_D0_Pin GPIO_PIN_1
 #define ARD_D0_GPIO_Port GPIOA
-#define VSYNC_BACK_PORCH_Pin GPIO_PIN_2
-#define VSYNC_BACK_PORCH_GPIO_Port GPIOA
-#define VGA_GREEN_Pin GPIO_PIN_3
-#define VGA_GREEN_GPIO_Port GPIOA
+#define VGA_HSYNC_Pin GPIO_PIN_3
+#define VGA_HSYNC_GPIO_Port GPIOA
 #define VGA_BLUE_Pin GPIO_PIN_4
 #define VGA_BLUE_GPIO_Port GPIOA
 #define ARD_D12_Pin GPIO_PIN_6
@@ -104,10 +97,10 @@ void Error_Handler(void);
 #define ARD_A1_GPIO_Port GPIOC
 #define ARD_A0_Pin GPIO_PIN_5
 #define ARD_A0_GPIO_Port GPIOC
-#define VGA_RED_Pin GPIO_PIN_0
-#define VGA_RED_GPIO_Port GPIOB
-#define H_BACK_PORCH_Pin GPIO_PIN_1
-#define H_BACK_PORCH_GPIO_Port GPIOB
+#define VGA_VSYNC_Pin GPIO_PIN_0
+#define VGA_VSYNC_GPIO_Port GPIOB
+#define VGA_GREEN_Pin GPIO_PIN_1
+#define VGA_GREEN_GPIO_Port GPIOB
 #define ARD_D8_Pin GPIO_PIN_2
 #define ARD_D8_GPIO_Port GPIOB
 #define DFSDM1_DATIN2_Pin GPIO_PIN_7
@@ -184,8 +177,6 @@ void Error_Handler(void);
 #define SYS_JTMS_SWDIO_GPIO_Port GPIOA
 #define SYS_JTCK_SWCLK_Pin GPIO_PIN_14
 #define SYS_JTCK_SWCLK_GPIO_Port GPIOA
-#define VSYNC_Pin GPIO_PIN_15
-#define VSYNC_GPIO_Port GPIOA
 #define INTERNAL_SPI3_SCK_Pin GPIO_PIN_10
 #define INTERNAL_SPI3_SCK_GPIO_Port GPIOC
 #define INTERNAL_SPI3_MISO_Pin GPIO_PIN_11
@@ -210,8 +201,8 @@ void Error_Handler(void);
 #define STSAFE_A100_RESET_GPIO_Port GPIOD
 #define SYS_JTD0_SWO_Pin GPIO_PIN_3
 #define SYS_JTD0_SWO_GPIO_Port GPIOB
-#define H_SYNC_Pin GPIO_PIN_4
-#define H_SYNC_GPIO_Port GPIOB
+#define VGA_RED_Pin GPIO_PIN_4
+#define VGA_RED_GPIO_Port GPIOB
 #define SPSGRF_915_SPI3_CSN_Pin GPIO_PIN_5
 #define SPSGRF_915_SPI3_CSN_GPIO_Port GPIOB
 #define ST_LINK_UART1_TX_Pin GPIO_PIN_6

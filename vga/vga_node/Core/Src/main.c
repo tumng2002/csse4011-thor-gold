@@ -49,8 +49,7 @@ QSPI_HandleTypeDef hqspi;
 
 SPI_HandleTypeDef hspi3;
 
-TIM_HandleTypeDef htim2;
-TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim16;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
@@ -78,8 +77,7 @@ static void MX_SPI3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
-static void MX_TIM2_Init(void);
-static void MX_TIM3_Init(void);
+static void MX_TIM16_Init(void);
 void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
@@ -126,8 +124,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
-  MX_TIM2_Init();
-  MX_TIM3_Init();
+  MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
 
   vga_init();
@@ -399,133 +396,34 @@ static void MX_SPI3_Init(void)
 }
 
 /**
-  * @brief TIM2 Initialization Function
+  * @brief TIM16 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_TIM2_Init(void)
+static void MX_TIM16_Init(void)
 {
 
-  /* USER CODE BEGIN TIM2_Init 0 */
+  /* USER CODE BEGIN TIM16_Init 0 */
 
-  /* USER CODE END TIM2_Init 0 */
+  /* USER CODE END TIM16_Init 0 */
 
-  TIM_SlaveConfigTypeDef sSlaveConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
+  /* USER CODE BEGIN TIM16_Init 1 */
 
-  /* USER CODE BEGIN TIM2_Init 1 */
-
-  /* USER CODE END TIM2_Init 1 */
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 2048;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  //htim2.Init.RepetitionCounter = 0;
-  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  /* USER CODE END TIM16_Init 1 */
+  htim16.Instance = TIM16;
+  htim16.Init.Prescaler = 0;
+  htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim16.Init.Period = PixelClockPeriodTicks - 1;
+  htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim16.Init.RepetitionCounter = 0;
+  htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim16) != HAL_OK)
   {
     Error_Handler();
   }
-  if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_OC_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_GATED;
-  sSlaveConfig.InputTrigger = TIM_TS_ITR0;
-  if (HAL_TIM_SlaveConfigSynchro(&htim2, &sSlaveConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_PWM2;
-  sConfigOC.Pulse = VSYNCPulse;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_INACTIVE;
-  sConfigOC.Pulse = VSYNCBackPorchPulse;
-  if (HAL_TIM_OC_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM2_Init 2 */
+  /* USER CODE BEGIN TIM16_Init 2 */
 
-  /* USER CODE END TIM2_Init 2 */
-  HAL_TIM_MspPostInit(&htim2);
-
-}
-
-/**
-  * @brief TIM3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM3_Init(void)
-{
-
-  /* USER CODE BEGIN TIM3_Init 0 */
-
-  /* USER CODE END TIM3_Init 0 */
-
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
-
-  /* USER CODE BEGIN TIM3_Init 1 */
-
-  /* USER CODE END TIM3_Init 1 */
-  htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 0;
-  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 2048;
-  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  //htim3.Init.RepetitionCounter = 0;
-  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_TIM_OC_Init(&htim3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_ENABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_PWM2;
-  sConfigOC.Pulse = HSYNCPulse;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_INACTIVE;
-  sConfigOC.Pulse = HSYNCBackPorchPulse;
-  if (HAL_TIM_OC_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM3_Init 2 */
-
-  /* USER CODE END TIM3_Init 2 */
-  HAL_TIM_MspPostInit(&htim3);
+  /* USER CODE END TIM16_Init 2 */
 
 }
 
@@ -656,11 +554,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOE, M24SR64_Y_RF_DISABLE_Pin|M24SR64_Y_GPO_Pin|ISM43362_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, VGA_GREEN_Pin|VGA_BLUE_Pin|SPBTLE_RF_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, VGA_HSYNC_Pin|VGA_BLUE_Pin|SPBTLE_RF_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, VGA_RED_Pin|ARD_D8_Pin|ISM43362_BOOT0_Pin|ISM43362_WAKEUP_Pin
-                          |LED2_Pin|SPSGRF_915_SDN_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, VGA_VSYNC_Pin|VGA_GREEN_Pin|ARD_D8_Pin|ISM43362_BOOT0_Pin
+                          |ISM43362_WAKEUP_Pin|LED2_Pin|SPSGRF_915_SDN_Pin|VGA_RED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, USB_OTG_FS_PWR_EN_Pin|PMOD_RESET_Pin|STSAFE_A100_RESET_Pin, GPIO_PIN_RESET);
@@ -712,11 +610,11 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : VGA_GREEN_Pin VGA_BLUE_Pin SPBTLE_RF_RST_Pin */
-  GPIO_InitStruct.Pin = VGA_GREEN_Pin|VGA_BLUE_Pin|SPBTLE_RF_RST_Pin;
+  /*Configure GPIO pins : VGA_HSYNC_Pin VGA_BLUE_Pin */
+  GPIO_InitStruct.Pin = VGA_HSYNC_Pin|VGA_BLUE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : ARD_D12_Pin ARD_D11_Pin */
@@ -727,10 +625,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : VGA_RED_Pin ARD_D8_Pin ISM43362_BOOT0_Pin ISM43362_WAKEUP_Pin
-                           LED2_Pin SPSGRF_915_SDN_Pin SPSGRF_915_SPI3_CSN_Pin */
-  GPIO_InitStruct.Pin = VGA_RED_Pin|ARD_D8_Pin|ISM43362_BOOT0_Pin|ISM43362_WAKEUP_Pin
-                          |LED2_Pin|SPSGRF_915_SDN_Pin|SPSGRF_915_SPI3_CSN_Pin;
+  /*Configure GPIO pins : VGA_VSYNC_Pin VGA_GREEN_Pin VGA_RED_Pin */
+  GPIO_InitStruct.Pin = VGA_VSYNC_Pin|VGA_GREEN_Pin|VGA_RED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : ARD_D8_Pin ISM43362_BOOT0_Pin ISM43362_WAKEUP_Pin LED2_Pin
+                           SPSGRF_915_SDN_Pin SPSGRF_915_SPI3_CSN_Pin */
+  GPIO_InitStruct.Pin = ARD_D8_Pin|ISM43362_BOOT0_Pin|ISM43362_WAKEUP_Pin|LED2_Pin
+                          |SPSGRF_915_SDN_Pin|SPSGRF_915_SPI3_CSN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -763,6 +668,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SPBTLE_RF_RST_Pin */
+  GPIO_InitStruct.Pin = SPBTLE_RF_RST_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(SPBTLE_RF_RST_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PMOD_SPI2_SCK_Pin */
   GPIO_InitStruct.Pin = PMOD_SPI2_SCK_Pin;

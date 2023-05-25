@@ -4,16 +4,13 @@
 /**
  * VGA Pinout
  * 
- * TIM2
- * PA2  (D10)   -> VSYNC-BACK-PORCH
- * PA15 (D9)    -> VSYNC
+ * TIM16 (80MHz counting to 3-1)
  * 
- * TIM3
- * PB1  (D6)    -> HSYNC-BACK-PORCH
- * PB4  (D5)    -> HSYNC
+ * PB0  (D3)    -> VSYNC    (GPIO out)
+ * PA3  (D4)    -> HSYNC    (GPIO out)
  * 
- * PB0  (D3)    -> RED      (GPIO out)
- * PA3  (D4)    -> GREEN    (GPIO out)
+ * PB4  (D5)    -> RED      (GPIO out)
+ * PB1  (D6)    -> GREEN    (GPIO out)
  * PA4  (D7)    -> BLUE     (GPIO out)
  */
 

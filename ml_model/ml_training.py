@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np 
 import tensorflow as tf
 from sklearn import metrics
+from sklearn.model_selection import train_test_split
 import pandas as pd
 import pickle
 
@@ -13,6 +14,67 @@ from keras.layers import Flatten
 from keras.layers import Conv2D
 from keras.layers.normalization.batch_normalization import BatchNormalization
 from keras.layers import Dropout
+
+
+"""
+  NOSE = 0
+  LEFT_SHOULDER = 11
+  RIGHT_SHOULDER = 12
+  LEFT_ELBOW = 13
+  RIGHT_ELBOW = 14
+  LEFT_WRIST = 15
+  RIGHT_WRIST = 16
+  LEFT_HIP = 23
+  RIGHT_HIP = 24
+  LEFT_KNEE = 25
+  RIGHT_KNEE = 26
+  LEFT_ANKLE = 27
+  RIGHT_ANKLE = 28
+  LEFT_HEEL = 29
+  RIGHT_HEEL = 30
+"""
+
+
+def load_labeled_data():
+    joint_num = np.array([0, 11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28, 29, 30])
+    training_data_file_names = ["arms-up.bin", "t-pose.bin", "arms-down.bin"]
+    pose_frames = []
+    for filename in training_data_file_names:
+        # df = pd.DataFrame
+        with open(f"training_data/{filename}", "rb") as f:
+            dataset = pickle.load(f)
+        frames = []
+        
+        for i in range(500):
+            x = []
+            z = []
+            for j, landmark in enumerate(dataset[i].landmark):
+                if j not in joint_num:
+                    continue
+                x.append(landmark.x)
+                z.append(landmark.y)
+            x = np.array(x)
+            z = np.array(z)
+            frame = np.append(x, z)
+            frames.append(frame)
+        filtered_data = np.array(frames)
+        pose_frames.append(filtered_data)
+    output_data = np.concatenate([pose_frames[0], pose_frames[1], pose_frames[2]], axis=0)
+    print(output_data.shape)
+    return output_data
+
+
+def load_training_data():
+    training_data_file_names = ["arms-up.bin", "t-pose.bin", "arms-down.bin"]
+    pose_frames = []
+    for filename in training_data_file_names:
+        # df = pd.DataFrame
+        with open(f"radar_data/{filename}", "rb") as f:
+            dataset = pickle.load(f)
+        pose_frames.append(dataset)
+    output_data = np.concatenate([pose_frames[0], pose_frames[1], pose_frames[2]], axis=0)
+    print(output_data.shape)
+    return output_data
 
 
 def define_CNN(in_shape, n_keypoints):
@@ -46,6 +108,11 @@ def define_CNN(in_shape, n_keypoints):
     return model
 
 
+# define batch size and epochs
+batch_size = 128
+epochs = 150
+
+
 def main():
     # #load the feature and labels, 24066, 8033, and 7984 frames for train, validate, and test
     # featuremap_train = np.load('feature/featuremap_train.npy')
@@ -57,9 +124,48 @@ def main():
     # labels_test = np.load('feature/labels_test.npy')
     # remove the arms up one
     training_data_file_names = ["arms-up.bin", "t-pose.bin", "arms-down.bin"]
+    labeled_data = load_labeled_data()
+    training_data = load_training_data()
+    X_train, X_test, y_train, y_test = train_test_split(training_data, labeled_data, test_size=0.2)
+
+    keypoint_model = define_CNN(X_train[0].shape, 30)
+    # initial maximum error 
+    score_min = 10
+    history = keypoint_model.fit(X_train, y_train,
+                                 batch_size=batch_size, epochs=epochs, verbose=1, 
+                                 validation_data=(X_test, y_test))
+    # save and print the metrics
+    score_train = keypoint_model.evaluate(X_train, y_train, verbose = 1)
+    print('train MAPE = ', score_train[3])
+    score_test = keypoint_model.evaluate(X_test, y_test, verbose = 1)
+    print('test MAPE = ', score_test[3])
+
+        # Plot accuracy
+    plt.plot(history.history['mae'])
+    plt.plot(history.history['val_mae'])
+    plt.title('Model accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Xval'], loc='upper left')
+    plt.show()
+    
+    # Plot loss
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Xval'], loc='upper left')
+    plt.xlim([0,100])
+    plt.ylim([0,0.1])
+    plt.show()
+
+    keypoint_model.save("model/radar.h5")
+
+    exit()
     # training_data_file_names = ["squat.bin"]
-    # fig = plt.figure()
-    # ax = fig.add_subplot(projection='3d')
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
     for name in training_data_file_names:
         with open(f"training_data/{name}", "rb") as f:
             training_features = pickle.load(f)

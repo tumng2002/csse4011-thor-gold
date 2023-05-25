@@ -72,6 +72,38 @@ void vga_write_pixel(uint8_t pixel, uint16_t x, uint16_t y) {
 }
 
 /**
+ * Display the colour test frame on the vga display
+ */
+void vga_display_test_frame(void) {
+	int x = 0;	// VGA x coordinate
+	int y = 0; 	// VGA y coordinate
+
+	// Array of colors, and a variable that we'll use to index into the array
+	char colors [8] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
+	int index = 0;
+
+	// A couple of counters
+	int xcounter = 0;
+	int ycounter = 0;
+
+	for (y=0; y<BUFFER_VSIZE; y++) {            	// For each y-coordinate . . .
+		if (ycounter==30) {                     	//   If the y-counter is 60 . . .
+			ycounter = 0;                      		//     Zero the counter
+			index = (index+1)%8;               		//     Increment the color index
+		}                                       	//
+		ycounter +=1 ;                          	//   Increment the y-counter
+		for (x=0; x<BUFFER_HSIZE; x++) {        	//   For each x-coordinate . . .
+			if (xcounter == 20) {               	//     If the x-counter is 80 . . .
+				xcounter = 0;                   	//        Zero the x-counter
+				index = (index + 1)%8 ;         	//        Increment the color index
+			}                                   	//
+			xcounter += 1 ;                     	//     Increment the x-counter
+			vga_write_pixel(colors[index], x, y) ;	//     Draw a pixel to the screen
+		}
+	}
+}
+
+/**
  * Get the state of a specific colour for a given pixel from the buffer.
  * 
  * @param pixel the pixel from the frame buffer

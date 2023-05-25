@@ -128,6 +128,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   vga_init();
+  vga_display_test_frame();
 
   /* USER CODE END 2 */
 

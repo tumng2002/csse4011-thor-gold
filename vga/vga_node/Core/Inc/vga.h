@@ -46,4 +46,9 @@ void vga_write_frame(uint8_t** frame);
  */
 void vga_write_pixel(uint8_t pixel, uint16_t x, uint16_t y);
 
+/**
+ * Display the colour test frame on the vga display
+ */
+void vga_display_test_frame(void);
+
 #endif // __VGA_H

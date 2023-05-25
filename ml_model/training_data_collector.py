@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import pickle
+from time import sleep
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -10,6 +11,7 @@ mp_pose = mp.solutions.pose
 cap = cv2.VideoCapture(0)
 landmarks = []
 file_name = input("input a pose: ")
+sleep(3)
 with mp_pose.Pose(
     min_detection_confidence=0.5,
     min_tracking_confidence=0.5) as pose:
@@ -41,7 +43,7 @@ with mp_pose.Pose(
     cv2.imshow('MediaPipe Pose', cv2.flip(image, 1))
     # cv2.imwrite('tes')
     # print(results.pose_landmarks)
-    if len(landmarks) == 500:
+    if len(landmarks) == 2000:
         with open(f"{file_name}.bin", "wb") as f:
           pickle.dump(landmarks, f)
         break

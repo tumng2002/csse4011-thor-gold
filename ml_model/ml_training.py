@@ -43,9 +43,10 @@ def load_labeled_data():
         # df = pd.DataFrame
         with open(f"training_data/{filename}", "rb") as f:
             dataset = pickle.load(f)
+            
         frames = []
         
-        for i in range(500):
+        for i in range(2000):
             x = []
             z = []
             for j, landmark in enumerate(dataset[i].landmark):

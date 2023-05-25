@@ -7,6 +7,7 @@ from sklearn import metrics
 import pandas as pd
 import pickle
 import argparse
+import struct
 
 from ports import *
 
@@ -298,6 +299,8 @@ PLOT_DATA = True
 COLLECT_DATA = False
 
 def main():
+    if USE_MODEL:
+        ser = serial.Serial('COM7', 115200)
 
     if COLLECT_DATA:
         parser = argparse.ArgumentParser(description='Filename for saving radar data')
@@ -330,8 +333,9 @@ def main():
     fig_raw = plt.figure()
     ax_raw = fig_raw.add_subplot(projection='3d')
 
-    fig_model = plt.figure()
-    ax_model = fig_model.add_subplot(projection='3d')
+    if USE_MODEL:
+        fig_model = plt.figure()
+        ax_model = fig_model.add_subplot(projection='3d')
 
     frames = []
     cached_frames = []
@@ -360,7 +364,7 @@ def main():
                     # sort by x, then y for equal x, then z for equal x and y
                     final_point = final_point.sort_values(by=["x", "y", "z"])
                     X_LIM = 1
-                    Z_LIM = 1.5
+                    Z_LIM = 1
                     Y_MIN = 1
                     Y_LIM = 3
                     # drop values based on -X_LIM < x < X_LIM
@@ -388,9 +392,19 @@ def main():
                     if USE_MODEL:
                         skeleton = keypoint_model.predict(square_matrix)
                         x = skeleton[0][0:15]
+                        x = x.astype("float32")
                         # y = skeleton[0][19:38]
                         y = np.zeros(15)
+                        y = y.astype("float32")
                         z = skeleton[0][15:30]
+                        z = z.astype("float32")
+                        x_data = bytearray(x)
+                        z_data = bytearray(z)
+                        # x_data = bytearray(struct.pack('f' * len(x), *x))
+                        # z_data = bytearray(struct.pack('f' * len(z), *z))
+                        full_packet = x_data + z_data
+                        # print(full_packet)
+                        ser.write(full_packet)
 
                     x_raw = df_final["x"]
                     y_raw = df_final["y"]
@@ -422,7 +436,9 @@ def main():
                         cached_frames.append(column_vector.reshape(8, 8, 5))
                         if len(cached_frames) % 10 == 0:
                             print(len(cached_frames))
-                        if len(cached_frames) == 500:
+                        if len(cached_frames) == 2000:
+                            if len(cached_frames) % 10 == 0:
+                                print(len(cached_frames))
                             training_data = np.array(cached_frames)
                             with open(f"radar_data/{filename}.bin", "wb") as f:
                                 pickle.dump(training_data, f)

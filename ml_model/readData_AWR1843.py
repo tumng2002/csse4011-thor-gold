@@ -386,6 +386,8 @@ def main():
     frames = []
     cached_frames = []
 
+    count = 0
+
     while True:
         try:
             # Update the data and check if the data is okay
@@ -444,13 +446,20 @@ def main():
                         y = y.astype("float32")
                         z = skeleton[0][15:30]
                         z = z.astype("float32")
-                        x_data = bytearray(x)
-                        z_data = bytearray(z)
-                        # x_data = bytearray(struct.pack('f' * len(x), *x))
-                        # z_data = bytearray(struct.pack('f' * len(z), *z))
-                        full_packet = x_data + z_data
-                        # print(full_packet)
-                        ser.write(full_packet)
+                        send_data = np.concatenate([x, z])
+                        # data = send_data.tobytes()
+                        # ser.write(data)
+                        if count % 3 == 0:
+                            data = send_data.tobytes()
+                            print(len(data))
+                            print(data)
+                            
+                            # x_data = bytearray(struct.pack('f' * len(x), *x))
+                            # z_data = bytearray(struct.pack('f' * len(z), *z))
+                            # full_packet = x_data + z_data
+                            # print(full_packet)
+                            ser.write(data)
+                        count += 1
 
                     x_raw = df_final["x"]
                     y_raw = df_final["y"]

@@ -556,11 +556,17 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOE, M24SR64_Y_RF_DISABLE_Pin|M24SR64_Y_GPO_Pin|ISM43362_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, VGA_HSYNC_Pin|VGA_BLUE_Pin|SPBTLE_RF_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(VGA_HSYNC_GPIO_Port, VGA_HSYNC_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, VGA_VSYNC_Pin|VGA_GREEN_Pin|ARD_D8_Pin|ISM43362_BOOT0_Pin
-                          |ISM43362_WAKEUP_Pin|LED2_Pin|SPSGRF_915_SDN_Pin|VGA_RED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, VGA_BLUE_Pin|SPBTLE_RF_RST_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, VGA_VSYNC_Pin|SPSGRF_915_SPI3_CSN_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, VGA_GREEN_Pin|ARD_D8_Pin|ISM43362_BOOT0_Pin|ISM43362_WAKEUP_Pin
+                          |LED2_Pin|SPSGRF_915_SDN_Pin|VGA_RED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, USB_OTG_FS_PWR_EN_Pin|PMOD_RESET_Pin|STSAFE_A100_RESET_Pin, GPIO_PIN_RESET);
@@ -570,9 +576,6 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, VL53L0X_XSHUT_Pin|LED3_WIFI__LED4_BLE_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(SPSGRF_915_SPI3_CSN_GPIO_Port, SPSGRF_915_SPI3_CSN_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(ISM43362_SPI3_CSN_GPIO_Port, ISM43362_SPI3_CSN_Pin, GPIO_PIN_SET);
@@ -627,8 +630,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : VGA_VSYNC_Pin VGA_GREEN_Pin VGA_RED_Pin */
-  GPIO_InitStruct.Pin = VGA_VSYNC_Pin|VGA_GREEN_Pin|VGA_RED_Pin;
+  /*Configure GPIO pin : VGA_VSYNC_Pin */
+  GPIO_InitStruct.Pin = VGA_VSYNC_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  HAL_GPIO_Init(VGA_VSYNC_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : VGA_GREEN_Pin VGA_RED_Pin */
+  GPIO_InitStruct.Pin = VGA_GREEN_Pin|VGA_RED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;

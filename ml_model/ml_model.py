@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np 
 import tensorflow as tf
 from sklearn import metrics
+import pandas as pd
+import pickle
 
 from keras.optimizers import Adam
 from keras.models import Model
@@ -9,14 +11,11 @@ from keras.layers import Dense
 from keras.layers import Input
 from keras.layers import Flatten
 from keras.layers import Conv2D
-from keras.layers.normalization import BatchNormalization
+from keras.layers.normalization.batch_normalization import BatchNormalization
 from keras.layers import Dropout
 
 
-
-
 def define_CNN(in_shape, n_keypoints):
-
 
     in_one = Input(shape=in_shape)
     conv_one_1 = Conv2D(16, kernel_size=(3, 3), activation='relu', strides=(1, 1), padding = 'same')(in_one)
@@ -48,35 +47,100 @@ def define_CNN(in_shape, n_keypoints):
 
 
 def main():
-    #load the feature and labels, 24066, 8033, and 7984 frames for train, validate, and test
-    featuremap_train = np.load('feature/featuremap_train.npy')
-    featuremap_validate = np.load('feature/featuremap_validate.npy')
-    featuremap_test = np.load('feature/featuremap_test.npy')
+    # #load the feature and labels, 24066, 8033, and 7984 frames for train, validate, and test
+    # featuremap_train = np.load('feature/featuremap_train.npy')
+    # featuremap_validate = np.load('feature/featuremap_validate.npy')
+    # featuremap_test = np.load('feature/featuremap_test.npy')
 
-    labels_train = np.load('feature/labels_train.npy')
-    labels_validate = np.load('feature/labels_validate.npy')
-    labels_test = np.load('feature/labels_test.npy')
+    # labels_train = np.load('feature/labels_train.npy')
+    # labels_validate = np.load('feature/labels_validate.npy')
+    # labels_test = np.load('feature/labels_test.npy')
+    # remove the arms up one
+    training_data_file_names = ["arms-up.bin", "t-pose.bin", "arms-down.bin"]
+    # training_data_file_names = ["squat.bin"]
+    # fig = plt.figure()
+    # ax = fig.add_subplot(projection='3d')
+    for name in training_data_file_names:
+        with open(f"training_data/{name}", "rb") as f:
+            training_features = pickle.load(f)
+            for i in range(500):
+                ax.clear()
+                # ax.scatter(landmark.x, landmark.y, landmark.z)
+                x = []
+                y = []
+                z = []
+                for landmark in training_features[i].landmark:
+                    x.append(landmark.x)
+                    y.append(0)
+                    z.append(landmark.y)
+                    # ax.scatter(landmark.x, landmark.y, landmark.z)
+                ax.scatter(x, y, z)
+                ax.set_xlabel("X")
+                ax.set_ylabel("Y")
+                ax.set_zlabel("Z")
+                ax.axes.set_xlim3d(left=-0.5, right=0.5)
+                ax.axes.set_ylim3d(bottom=-0.5, top=0.5)
+                ax.axes.set_zlim3d(bottom=1, top=0)
 
-    # Initialize the result array
-    paper_result_list = []
+                plt.pause(0.05)
+    
+    # plt.show()
+    #         # print(training_features[0].landmark[0])
 
 
-    # define batch size and epochs
-    batch_size = 128
-    epochs = 150
+    # # Initialize the result array
+    # paper_result_list = []
 
-    # load model
-    keypoint_model = tf.keras.models.load_model("model/MARS.h5")
 
-    # instantiate the model
-    keypoint_model = define_CNN(featuremap_train[0].shape, 57)
+    # # define batch size and epochs
+    # batch_size = 128
+    # epochs = 150
 
-    # # initial maximum error 
-    # score_min = 10
-    history = keypoint_model.fit(featuremap_train, labels_train,
-                                batch_size=batch_size, epochs=epochs, verbose=1, 
-                                validation_data=(featuremap_validate, labels_validate))
-    result_test = keypoint_model.predict(featuremap_test)
+    # # load model
+    # keypoint_model = tf.keras.models.load_model("model/MARS.h5")
+    # # Repeat i iteration to get the average result
+    # # for i in range(10):
+    # # instantiate the model
+    # keypoint_model = tf.keras.models.load_model("model/MARS.h5")
+
+    # # save and print the metrics
+    # # score_train = keypoint_model.evaluate(featuremap_train, labels_train,verbose = 1)
+    # # print('train MAPE = ', score_train[3])
+    # # score_test = keypoint_model.evaluate(featuremap_test, labels_test,verbose = 1)
+    # # print('test MAPE = ', score_test[3])
+    # print(len(featuremap_test))
+    # result_test = keypoint_model.predict(np.array([featuremap_test[2735]]))
+
+    # x = result_test[0][0:19]
+    # y = result_test[0][19:38]
+    # z = result_test[0][38:57]
+    # # print(pts)
+    
+    # fig = plt.figure()
+    # ax = fig.add_subplot(projection='3d')
+    # ax.scatter(x, y, z)
+    # ax.set_xlabel('X Label')
+    # ax.set_ylabel('Y Label')
+    # ax.set_zlabel('Z Label')
+    # plt.show()
+
+    # # df = pd.DataFrame(result_test)
+    # # print(df)
+    # # print(featuremap_test)
+    # # print(featuremap_test[0])
+    # # print(result_test)
+    # # print(result_test[0])
+    # exit()
+
+    # # instantiate the model
+    # # keypoint_model = define_CNN(featuremap_train[0].shape, 57)
+
+    # # # # initial maximum error 
+    # # # score_min = 10
+    # # history = keypoint_model.fit(featuremap_train, labels_train,
+    # #                             batch_size=batch_size, epochs=epochs, verbose=1, 
+    # #                             validation_data=(featuremap_validate, labels_validate))
+    # # result_test = keypoint_model.predict(featuremap_test)
 
 if __name__ == "__main__":
     main()
